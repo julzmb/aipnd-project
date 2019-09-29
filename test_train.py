@@ -4,14 +4,6 @@ import logging
 import train
 
 class MainTests(unittest.TestCase):
-    def test_main_is_callable(self):
-        self.assertTrue(
-            hasattr(train, 'main')
-        )
-        self.assertTrue(
-            callable(train.main)
-        )
-
     def verify_call(self, funcname):
         with unittest.mock.patch(
             'train.{}'.format(funcname)
@@ -32,40 +24,16 @@ class MainTests(unittest.TestCase):
         self.verify_call('export')
     
 class GetArgsTests(unittest.TestCase):
-    def test_getargs_is_callable(self):
-        self.assertTrue(
-            hasattr(train, 'getargs')
-        )
-        self.assertTrue(
-            callable(train.getargs)
-        )
+    pass
 
 class GetModelTests(unittest.TestCase):
-    def test_getmodel_is_callable(self):
-        self.assertTrue(
-            hasattr(train, 'getmodel')
-        )
-        self.assertTrue(
-            callable(train.getmodel)
-        )
+    pass
 
 class TrainTests(unittest.TestCase):
-    def test_train_is_callable(self):
-        self.assertTrue(
-            hasattr(train, 'train')
-        )
-        self.assertTrue(
-            callable(train.train)
-        )
+    pass
 
 class ExportTests(unittest.TestCase):
-    def test_export_is_callable(self):
-        self.assertTrue(
-            hasattr(train, 'export')
-        )
-        self.assertTrue(
-            callable(train.export)
-        )
+    pass
 
 if __name__ == '__main__':
     logging.basicConfig(
