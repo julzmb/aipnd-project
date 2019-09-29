@@ -20,6 +20,9 @@ class MainTests(unittest.TestCase):
     def test_main_calls_train(self):
         self.verify_call('train')
 
+    def test_main_calls_test(self):
+        self.verify_call('test')
+
     def test_main_calls_export(self):
         self.verify_call('export')
     
@@ -31,6 +34,15 @@ class GetModelTests(unittest.TestCase):
 
 class TrainTests(unittest.TestCase):
     pass
+
+class TestTests(unittest.TestCase):
+    def test_test_is_callable(self):
+        self.assertTrue(
+            hasattr(train, 'test')
+        )
+        self.assertTrue(
+            callable(train.test)
+        )
 
 class ExportTests(unittest.TestCase):
     pass
