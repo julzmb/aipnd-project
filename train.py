@@ -9,7 +9,10 @@
  * call export()
 '''
 def main():
-    pass
+    getargs()
+    getmodel()
+    train()
+    export()
 
 def getargs():
     pass
