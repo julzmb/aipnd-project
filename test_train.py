@@ -36,13 +36,7 @@ class TrainTests(unittest.TestCase):
     pass
 
 class TestTests(unittest.TestCase):
-    def test_test_is_callable(self):
-        self.assertTrue(
-            hasattr(train, 'test')
-        )
-        self.assertTrue(
-            callable(train.test)
-        )
+    pass
 
 class ExportTests(unittest.TestCase):
     pass
