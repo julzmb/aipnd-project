@@ -11,26 +11,25 @@ class MainTests(unittest.TestCase):
         self.assertTrue(
             callable(train.main)
         )
+
+    def verify_call(self, funcname):
+        with unittest.mock.patch(
+            'train.{}'.format(funcname)
+        ) as m:
+            train.main()
+        m.assert_called()
     
     def test_main_calls_getargs(self):
-        with unittest.mock.patch('train.getargs') as m:
-            train.main()
-        m.assert_called()
+        self.verify_call('getargs')
 
     def test_main_calls_getmodel(self):
-        with unittest.mock.patch('train.getmodel') as m:
-            train.main()
-        m.assert_called()
+        self.verify_call('getmodel')
 
     def test_main_calls_train(self):
-        with unittest.mock.patch('train.train') as m:
-            train.main()
-        m.assert_called()
+        self.verify_call('train')
 
     def test_main_calls_export(self):
-        with unittest.mock.patch('train.export') as m:
-            train.main()
-        m.assert_called()
+        self.verify_call('export')
     
 class GetArgsTests(unittest.TestCase):
     def test_getargs_is_callable(self):
