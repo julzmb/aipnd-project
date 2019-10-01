@@ -14,6 +14,9 @@ class MainTests(unittest.TestCase):
     def test_main_calls_getargs(self):
         self.verify_call('getargs')
 
+    def test_main_calls_getdataloaders(self):
+        self.verify_call('getdataloaders')
+
     def test_main_calls_getmodel(self):
         self.verify_call('getmodel')
 
@@ -27,6 +30,9 @@ class MainTests(unittest.TestCase):
         self.verify_call('export')
     
 class GetArgsTests(unittest.TestCase):
+    pass
+
+class GetDataLoadersTests(unittest.TestCase):
     pass
 
 class GetModelTests(unittest.TestCase):
