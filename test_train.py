@@ -38,11 +38,21 @@ class GetArgsTests(unittest.TestCase):
 
     @unittest.mock.patch('argparse.ArgumentParser')
     def test_getargs_return_argument_parser(self, mock_class):
-        test_parser = unittest.mock.sentinel.fake_parser
+        test_parser = unittest.mock.MagicMock()
         mock_class.return_value = test_parser
         self.assertEqual(
             train.getargs(),
             test_parser
+        )
+
+    def test_getargs_positional_args_datadir(self):
+        test_datadir_value = 'data/version1/'
+        args = train.getargs().parse_args(
+            [test_datadir_value]
+        )
+        self.assertEqual(
+            args.data_dir,
+            test_datadir_value
         )
 
 

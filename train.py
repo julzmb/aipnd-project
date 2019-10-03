@@ -25,6 +25,9 @@ def main():
 '''
 def getargs():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'data_dir'
+    )
     return parser
 
 '''
