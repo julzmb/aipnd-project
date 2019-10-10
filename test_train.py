@@ -4,14 +4,21 @@ import logging
 import torch
 import torchvision
 import train
+import os
 
 class MainTests(unittest.TestCase):
+    def setUp(self):
+        self.mock_dataloader = unittest.mock.patch('torch.utils.data.DataLoader').start()
+        self.mock_imagefolder = unittest.mock.patch('torchvision.datasets.ImageFolder').start()
+
+    def tearDown(self):
+        unittest.mock.patch.stopall()
+    
     def verify_call(self, funcname):
         with unittest.mock.patch(
             'train.{}'.format(funcname)
         ) as m:
-            with unittest.mock.patch('torch.utils.data.DataLoader') as _:
-                train.main()
+            train.main()
         m.assert_called()
     
     def test_main_calls_getargs(self):
@@ -183,28 +190,35 @@ class GetArgsTests(unittest.TestCase):
         self.assertFalse(args.gpu)
 
 class GetDataLoadersTests(unittest.TestCase):
+    def setUp(self):
+        self.imagefolder_class = torchvision.datasets.ImageFolder
+        self.dataloader_class = torch.utils.data.DataLoader
+        self.mock_imagefolder = unittest.mock.patch('torchvision.datasets.ImageFolder', spec=True).start()
+        self.mock_dataloader = unittest.mock.patch('torch.utils.data.DataLoader', spec=True).start()
+
+    def tearDown(self):
+        unittest.mock.patch.stopall()
+
     def test_getdataloaders_retun_type(self):
         train_ret, val_ret, test_ret, = train.getdataloaders('test_datadir', batch_size=1)
         for r in [train_ret, val_ret, test_ret]:
-            self.assertEqual(
-                type(r),
-                torch.utils.data.DataLoader
+            self.assertTrue(
+                isinstance(r, self.dataloader_class)
             )
 
-    @unittest.mock.patch('torch.utils.data.DataLoader')
-    def test_getdataloaders_dataloader_constructor_batch_size_arg(self, mock_class):
+    def test_getdataloaders_dataloader_constructor_batch_size_arg(self):
         batch_sizes = []
         def _dataloader_side_effect(*a, **kw):
             self.assertIn('batch_size', kw)
             batch_sizes.append(
                 kw['batch_size']
             )
-        mock_class.side_effect = _dataloader_side_effect
+        self.mock_dataloader.side_effect = _dataloader_side_effect
 
         test_batch_size = unittest.mock.sentinel.batch_size
         train.getdataloaders('test_datadir', batch_size=test_batch_size)
         self.assertEqual(
-            mock_class.call_count,
+            self.mock_dataloader.call_count,
             3
         )
 
@@ -214,19 +228,18 @@ class GetDataLoadersTests(unittest.TestCase):
             ])
         )
 
-    @unittest.mock.patch('torch.utils.data.DataLoader')
-    def test_getdataloaders_dataloader_constructor_dataset_num_workers(self, mock_class):
+    def test_getdataloaders_dataloader_constructor_dataset_num_workers(self):
         num_workers = []
         def _dataloader_side_effect(*a, **kw):
             self.assertIn('num_workers', kw)
             num_workers.append(
                 kw['num_workers']
             )
-        mock_class.side_effect = _dataloader_side_effect
+        self.mock_dataloader.side_effect = _dataloader_side_effect
 
         train.getdataloaders('test_datadir', batch_size=1)
         self.assertEqual(
-            mock_class.call_count,
+            self.mock_dataloader.call_count,
             3
         )
         self.assertTrue(
@@ -235,29 +248,75 @@ class GetDataLoadersTests(unittest.TestCase):
             ])
         )
 
-    @unittest.mock.patch('torch.utils.data.DataLoader')
-    def test_getdataloaders_dataloader_constructor_dataset_shuffle_arg(self, mock_class):
+    def test_getdataloaders_dataloader_constructor_dataset_shuffle_arg(self):
         shuffles = []
         def _dataloader_side_effect(*a, **kw):
             if 'shuffle' in kw and kw['shuffle']:
                 shuffles.append(True)
             else:
                 shuffles.append(False)
-        mock_class.side_effect = _dataloader_side_effect
+        self.mock_dataloader.side_effect = _dataloader_side_effect
 
         train.getdataloaders('test_datadir', batch_size=1)
         self.assertTrue(any(shuffles))
 
-    @unittest.mock.patch('torch.utils.data.DataLoader')
-    def test_getdataloaders_dataloader_constructor_dataset_arg_is_correct_type(self, mock_class):
+    def test_getdataloaders_dataloader_constructor_dataset_arg_is_correct_type(self):
         def _dataloader_side_effect(*a, **kw):
             dataset, = a
-            self.assertEqual(
-                type(dataset),
-                torchvision.datasets.ImageFolder
+            self.assertTrue(
+                isinstance(dataset, self.imagefolder_class)
             )
-        mock_class.side_effect = _dataloader_side_effect
+        self.mock_dataloader.side_effect = _dataloader_side_effect
         train.getdataloaders('test_datadir', batch_size=1)
+
+
+class GetDataLoadersDatasetsTests(unittest.TestCase):
+    def setUp(self):
+        self.dataloader_patch = unittest.mock.patch(
+            'torch.utils.data.DataLoader'
+        )
+        self.dataloader_mock = self.dataloader_patch.start()
+
+        self.imagefolder_patch = unittest.mock.patch(
+            'torchvision.datasets.ImageFolder'
+        )
+        self.imagefolder_mock = self.imagefolder_patch.start()
+        self.test_datadir = 'test_datadir'
+        self.test_batch_size = unittest.mock.sentinel.batch_size
+    
+    def tearDown(self):
+        unittest.mock.patch.stopall()
+    
+    def test_imagefolder_is_instantiated(self):
+        train.getdataloaders(self.test_datadir, batch_size=self.test_batch_size)
+        self.assertEqual(self.imagefolder_mock.call_count, 3)
+
+    def test_imagefolder_is_instantiated_with_tranforms(self):
+        def _instantiate_side_effect(*a, **kw):
+            self.assertIn('transform', kw)
+            transform = kw['transform']
+            self.assertIn(
+                type(transform), [
+                    torchvision.transforms.Compose
+                ]
+            )
+        self.imagefolder_mock.side_effect = _instantiate_side_effect
+        train.getdataloaders(self.test_datadir, batch_size=self.test_batch_size)
+
+    def test_imagefolder_is_instantiated_checking_path_arg(self):
+        observed_paths = set()
+        def _instantiate_side_effect(*a, **kw):
+            path, = a
+            observed_paths.add(path)
+        self.imagefolder_mock.side_effect = _instantiate_side_effect
+        
+        train.getdataloaders(self.test_datadir, batch_size=self.test_batch_size)
+        expected_paths = set([
+            self.test_datadir + '/' + x for x in ('test', 'valid', 'train')
+        ])
+        self.assertEqual(
+            expected_paths, observed_paths
+        )
 
 
 

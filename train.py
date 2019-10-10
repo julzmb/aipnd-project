@@ -68,9 +68,18 @@ calls to datasets.ImageFolder(path, transform)
 calls to torch.utils.data.DataLoader(dataset, batch_size=???, shuffle[training only])
 '''
 def getdataloaders(datadir, batch_size):
-    train_ds = torchvision.datasets.ImageFolder('.')  # dummy root value
-    val_ds = torchvision.datasets.ImageFolder('.')  # dummy root value
-    test_ds = torchvision.datasets.ImageFolder('.')  # dummy root value
+    train_ds = torchvision.datasets.ImageFolder(
+        datadir + '/train',
+        transform=torchvision.transforms.Compose([])
+    )  # dummy root value
+    val_ds = torchvision.datasets.ImageFolder(
+        datadir + '/valid',
+        transform=torchvision.transforms.Compose([])
+    )  # dummy root value
+    test_ds = torchvision.datasets.ImageFolder(
+        datadir + '/test',
+        transform=torchvision.transforms.Compose([])
+    )  # dummy root value
     return (
         torch.utils.data.DataLoader(
             train_ds,
